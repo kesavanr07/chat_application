@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Container, Col, Navbar, Toast, Nav, ListGroup, InputGroup, Row, FormControl, Button, Jumbotron } from 'react-bootstrap';
+import { Container, Col, Alert, Navbar, Toast, Nav, ListGroup, InputGroup, Row, FormControl, Button, Jumbotron } from 'react-bootstrap';
 import _ from 'underscore';
 import Authenticate from './Authenticate.js';
 import "./Dashboard.css";
@@ -13,13 +13,15 @@ class Dashboard extends React.Component {
         super(props);
         this.state = {
             user_data   : [],
+            user_contacts: [],
             user_id     : Authenticate.getUserId(),
             to_user_id  : 0,
             content     : "",
             chats       : [],
             show_message    : false,
             received_msg    : "",
-            chat_username   : ""
+            chat_username   : "",
+            searched_keyword   : ""
         }
     }
 
@@ -31,6 +33,13 @@ class Dashboard extends React.Component {
         this.setState(state_obj => {
             state_obj.show_message = !state_obj.show_message;
             return state_obj;
+        });
+    }
+
+    filterUser = (event) => {
+        const { value } = event.target;
+        this.setState({
+            searched_keyword : value
         });
     }
 
@@ -54,13 +63,43 @@ class Dashboard extends React.Component {
         });
     }
 
+    getUserData = (isload = false) => {
+        const {user_id, user_contacts, searched_keyword} = this.state;
+        Authenticate.requestAPI({
+            user_id,
+            searched_keyword
+        }, "get_user", (err, response) => {
+            if(err) return console.log('err :>> ', err);
+
+            const user_data = (response && response.user_data) || [];
+                
+            var to_user_id = 0;
+
+            if(user_data.length > 0)
+                to_user_id = (user_data[0] && user_data[0].user_id) || 0;
+
+            this.setState({
+                user_data,
+                to_user_id,
+                user_contacts : (isload === true) ? user_data : user_contacts
+            });
+            if(to_user_id !== 0) {
+                this.getMessages(to_user_id);
+            } else {
+                this.setState({
+                    chats : []
+                });
+            }
+        });
+    }
+
     async componentDidMount() {
         const socket = this.getSocket();
 
         socket.on("receive_msg", (data) => {
             if(data) {
-                const { to_user_id, user_id, user_data, chats } = this.state;
-                const msg_user_data = _.findWhere(user_data, {user_id : data.user_id});
+                const { to_user_id, user_id, user_contacts, chats } = this.state;
+                const msg_user_data = _.findWhere(user_contacts, {user_id : data.user_id});
                 if(msg_user_data && user_id === data.to_user_id) {
                     if(data && data.user_id === to_user_id) {
                         chats.unshift(data);
@@ -74,26 +113,7 @@ class Dashboard extends React.Component {
                 }        
             }    
         });
-
-        const {user_id} = this.state;
-        Authenticate.requestAPI({
-            user_id
-        }, "get_user", (err, response) => {
-            if(err) return console.log('err :>> ', err);
-
-            const user_data = (response && response.user_data) || [];
-                
-            var to_user_id = 0;
-
-            if(user_data.length > 0)
-                to_user_id = (user_data[0] && user_data[0].user_id) || 0;
-
-            this.setState({
-                user_data,
-                to_user_id
-            });
-            this.getMessages(to_user_id);
-        });
+        this.getUserData(true);
     }
 
     updateMessage = (event) => {
@@ -158,6 +178,19 @@ class Dashboard extends React.Component {
                 </Navbar>
                 <Row>
                     <Col md={{ span: 4 }}>
+                        <InputGroup className="mb-3">
+                            <FormControl
+                                placeholder="Search User"
+                                aria-label="Search User"
+                                aria-describedby="search"
+                                onChange={this.filterUser}
+                            />
+                            <InputGroup.Append>
+                                <Button onClick={this.getUserData} id="search">S</Button>
+                            </InputGroup.Append>
+                        </InputGroup>
+
+                        {/* <Form.Control placeholder="Search User" /> */}
                         <ListGroup>
                         {user_data.map((value, index) => {
                             return (
@@ -174,6 +207,7 @@ class Dashboard extends React.Component {
                             )
                         })}
                         </ListGroup>
+                        {user_data.length === 0 ? <Alert variant="warning">No User found</Alert>: ""}
                     </Col>
                     <Col md={{ span: 8}}>
                         <Jumbotron>

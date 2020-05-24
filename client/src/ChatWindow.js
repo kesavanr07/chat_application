@@ -13,7 +13,7 @@ class ChatWindow extends React.Component {
                         </Card>
                     )
                 })}
-                {chats.length === 0 ? <Alert variant="warning">Start your conversion</Alert>: ""}
+                {chats.length === 0 ? <Alert variant="warning">No Chat found</Alert>: ""}
             </div>
         );
     }
