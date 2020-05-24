@@ -81,6 +81,8 @@ class Registration extends React.Component {
         err_obj.email_id = "";
         err_obj.password = "";
 
+        var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+
         if(!this.state.username) {
             err_obj.username = "Please enter Username";
             err_obj.is_error = true;
@@ -88,6 +90,9 @@ class Registration extends React.Component {
 
         if(!this.state.email_id) {
             err_obj.email_id = "Please enter Email Id";
+            err_obj.is_error = true;
+        } else if (reg.test(this.state.email_id) == false) {
+            err_obj.email_id = "Please enter valid Email Id";
             err_obj.is_error = true;
         }
 
