@@ -1,0 +1,16 @@
+{
+    "mongo" : {
+        "local" : {
+            "host"          : "chatapp-onvrp.mongodb.net",
+            "port"          : "27017", 
+            "user"          : "kesavan",
+            "password"      : "e45Y0pRwOAsufGop",
+            "database"      : "chatApp"
+        }
+    },
+    "jwt" : {
+        "local" : {
+            "secret" : "mychatapp@123"
+        }
+    }
+}
