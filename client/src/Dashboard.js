@@ -186,7 +186,7 @@ class Dashboard extends React.Component {
                                 onChange={this.filterUser}
                             />
                             <InputGroup.Append>
-                                <Button onClick={this.getUserData} id="search">S</Button>
+                                <Button onClick={this.getUserData} id="search">Search</Button>
                             </InputGroup.Append>
                         </InputGroup>
 
